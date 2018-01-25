@@ -1,11 +1,13 @@
-import express from 'express';
+import * as express from 'express';
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
-import bodyParser from 'body-parser';
-import cors from 'cors';
+import * as bodyParser from 'body-parser';
+import * as cors from 'cors';
 
 import schema from './schema';
 
-const app = express().use('*', cors());
+const app = express();
+
+app.use('*', cors());
 
 app.use('/graphql', bodyParser.json(), graphqlExpress({
   schema,
