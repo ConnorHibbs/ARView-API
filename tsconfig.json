@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "sourceMap": true
+    },
+    "files": [
+        "resolvers.ts",
+        "schema.ts",
+        "server.ts"
+    ],
+    "excluse": [
+        "node_modules"
+    ]
+}
