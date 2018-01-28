@@ -1,2 +1,22 @@
+<<<<<<< HEAD
 /.idea
 /node_modules
+=======
+*.swp
+
+lib-cov
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+pids
+logs
+results
+
+node_modules
+npm-debug.log
+>>>>>>> c6fe0222b87955c456f59879bcb1a95d333020fe
