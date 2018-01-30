@@ -6,37 +6,29 @@ import resolvers from './resolvers';
 
 // Simple Movie schema
 const typeDefs = `
-type Movie {
-  movieId: String!
-  title: String
-  year: Int
-  plot: String
-  poster: String
-  imdbRating: Float
-  genres: [String]
-  similar: [Movie]
+type User {
+    userId: String!
+    name: String!
 }
 
 type Tag {
-  tagId: String!
   userId: String!
   title: String!
   text: String
   lat: Float
   lon: Float
-  elevation: Float
+  ele: Float
   dtg: String
-  category: [String]
-  attachments: [String]
 }
 
 type Query {
-  movies(subString: String!, limit: Int!): [Movie]
+    userById(userId: String) : User
+    allUsers : [User]
+    tagById(tagId: String) : Tag
+    tagsByLocation(lat: Float, lon: Float radius: Float): [Tag]
 }
 `;
 
-
 export default makeExecutableSchema({
-  typeDefs: typeDefs,
-  resolvers,
+  typeDefs, resolvers,
 });
