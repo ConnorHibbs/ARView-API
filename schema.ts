@@ -1,10 +1,6 @@
-// import graphql-tools
 import { makeExecutableSchema } from 'graphql-tools';
-
-// we’ll define our resolver functions in the next section
 import resolvers from './resolvers';
 
-// Simple Movie schema
 const typeDefs = `
 type User {
     userId: String!
@@ -12,6 +8,7 @@ type User {
 }
 
 type Tag {
+  _id: Int @cypher(statement: "WITH {this} AS this RETURN ID(this)")
   userId: String!
   title: String!
   text: String
@@ -24,7 +21,8 @@ type Tag {
 type Query {
     userById(userId: String) : User
     allUsers : [User]
-    tagById(tagId: String) : Tag
+    tagById(id: Int) : Tag
+    tagsByUserId(userId: String) : [Tag]
     tagsByLocation(lat: Float, lon: Float radius: Float): [Tag]
 }
 `;

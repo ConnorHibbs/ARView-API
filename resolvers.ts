@@ -1,65 +1,158 @@
 // import Neo4j driver
 import {v1 as neo4j} from 'neo4j-driver';
+// import {neo4jgraphql} from 'neo4j-graphql-js';
+import { neo4jgraphql } from "./executor";
+
 
 // create Neo4j driver instance, here we use a Neo4j Sandbox instance. See neo4j.com/sandbox-v2, Recommendations example dataset
-let driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "password"));
+// let driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "password"));
 
-
-
-const resolveFunctions = {
+const resolvers = {
     Query: {
-        userById(root: any, args: any) {
-            let session = driver.session();
-            let params = {userId: args.userId};
-            let query = `
-                MATCH (u:User)
-                WHERE u.name = $userId
-                RETURN u;
-            `;
-
-            return session.run(query, params).then((result) => {
-                console.log(result);
-                return result;
-            });
+        userById(object, args, ctx, resolveInfo) {
+            return neo4jgraphql(object, args, ctx, resolveInfo);
         },
-        allUsers(root: any, args: any) {
-            return [
-                {userId: "1", name: "Joe Bob"},
-                {userId: "2", name: "Jane Bob"}
-            ]
+        allUsers(object, args, ctx, resolveInfo) {
+            return neo4jgraphql(object, args, ctx, resolveInfo);
         },
-        tagById(root: any, args: any) {
-            return {
-                tagId: "1",
-                title: "This is a title",
-                text: "This is the text"
-            }
+        tagById(object, args, ctx, resolveInfo) {
+            let matcher = `id(tag) = ${args.id}`;
+            return neo4jgraphql(object, args, ctx, resolveInfo, matcher);
         },
-        tagsByLocation(root: any, args: any) {
-            let session = driver.session();
-            let params = {
-                minLat: args.lat - args.radius,
-                maxLat: args.lat + args.radius,
-                minLon: args.lon - args.radius,
-                maxLon: args.lon + args.radius
-            };
-            let query = `
-                MATCH (t:Tag)
-                WHERE $minLat < t.lat AND t.lat < $maxLat
-                AND   $minLon < t.lon AND t.lon < $maxLon
-                RETURN t
-            `;
-
-            return session.run(query, params).then(result => {
-                return result.records.map(record => {
-                    return record.get("t").properties;
-                })
-            });
+        tagsByUserId(object, args, ctx, resolveInfo) {
+            return neo4jgraphql(object, args, ctx, resolveInfo);
+        },
+        tagsByLocation(object, args, ctx, resolveInfo) {
+            let minLat = args.lat - args.radius;
+            let maxLat = args.lat + args.radius;
+            let minLon = args.lon - args.radius;
+            let maxLon = args.lon + args.radius;
+            let matcher = `${minLat} < tag.lat AND tag.lat < ${maxLat}
+                       AND ${minLon} < tag.lon AND tag.lon < ${maxLon}`;
+            return neo4jgraphql(object, args, ctx, resolveInfo, matcher);
         }
     }
 };
 
-export default resolveFunctions;
+// const resolveFunctions = {
+//     Query: {
+//         userById(root: any, args: any, ctx, resolveInfo) {
+//
+//
+//
+//                 return neo4jgraphql(root, args, ctx, resolveInfo);
+//
+//
+//
+//             //
+//             //
+//             // let session = driver.session();
+//             // let params = {userId: args.userId};
+//             // let query = `
+//             //     MATCH (u:User)
+//             //     WHERE u.name = $userId
+//             //     RETURN u;
+//             // `;
+//             //
+//             // return session.run(query, params).then((result) => {
+//             //     console.log(result);
+//             //     return result;
+//             // });
+//         },
+//         allUsers(root: any, args: any) {
+//             return [
+//                 {userId: "1", name: "Joe Bob"},
+//                 {userId: "2", name: "Jane Bob"}
+//             ]
+//         },
+//         tagById(root: any, args: any) {
+//             console.log("Tag By ID:(args)", args);
+//
+//             let params = {
+//                 tagId: args.id
+//             };
+//
+//             let query = `
+//                 MATCH (t:Tag)
+//                 WHERE id(t) = $tagId
+//                 RETURN t
+//             `;
+//
+//             let session = driver.session();
+//             return session.run(query, params).then(result => {
+//                 // console.log("Result:", result);
+//                 console.log("Record", result.records[0]);
+//                 console.log("Field", result.records[0]._fields[0]);
+//
+//                 let node = result.records[0]._fields[0];
+//
+//                 let tag = result.records[0].get("t").properties;
+//                 getId(node);
+//
+//                 tag["id"] = 508;
+//                 return tag;
+//             });
+//         },
+//         tagsByLocation(root: any, args: any) {
+//             console.log("Args:", args);
+//
+//             let session = driver.session();
+//             let params = {
+//                 minLat: args.lat - args.radius,
+//                 maxLat: args.lat + args.radius,
+//                 minLon: args.lon - args.radius,
+//                 maxLon: args.lon + args.radius
+//             };
+//             let query = `
+//                 MATCH (t:Tag)
+//                 WHERE $minLat < t.lat AND t.lat < $maxLat
+//                 AND   $minLon < t.lon AND t.lon < $maxLon
+//                 RETURN t
+//             `;
+//
+//             return session.run(query, params).then(result => {
+//                 return result.records.map(record => {
+//                     return record.get("t").properties;
+//                 })
+//             });
+//         }
+//     },
+//     // Tag: {
+//     //     id(tag: any, args: any) {
+//     //         // _id: Int @cypher(statement: "WITH {this} AS this RETURN ID(this)")
+//     //         console.log("Tag:", tag);
+//     //
+//     //
+//     //         let params = {
+//     //             tag
+//     //         };
+//     //
+//     //         let query = `
+//     //             RETURN id($tag)
+//     //         `;
+//     //
+//     //         driver.session().run(query, params).then(result => {
+//     //             console.log("Result:", result);
+//     //             console.log("Record:", result.records[0]);
+//     //             return result.records[0];
+//     //         });
+//     //     }
+//     // }
+// };
+//
+// function getId(tag: any) {
+//     console.log("Getting ID for", tag);
+//
+//     let session = driver.session();
+//     let params = { tag };
+//     let query = "RETURN id($tag)";
+//     return session.run(query, params).then(result => {
+//         console.log("Got back from DB:", result.records[0]);
+//         return 508;
+//     });
+// }
+
+export default resolvers;
 
 
 /*

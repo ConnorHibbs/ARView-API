@@ -1,3 +1,0 @@
-
-VS Code Setup for TS
-https://code.visualstudio.com/docs/languages/typescript
