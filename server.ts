@@ -6,10 +6,7 @@ import * as cors from 'cors';
 import schema from './schema';
 import {v1 as neo4j} from "neo4j-driver";
 
-// const { maskErrors } = require('graphql-errors');
-// maskErrors(schema);
-
-var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "password"));
+let driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "password"));
 
 function context(headers, secrets) {
     return {driver, headers};
@@ -20,19 +17,18 @@ const app = express();
 
 app.use('*', cors());
 
-app.use('/graphql', bodyParser.json(), graphqlExpress(request => ({
+app.use('/api/v1', bodyParser.json(), graphqlExpress(request => ({
     schema,
     rootValue,
     context: context(request.headers, process.env),
 })));
 
 app.use('/graphiql', graphiqlExpress({
-    endpointURL: '/graphql',
-    query: `{}`,
+    endpointURL: '/api/v1'
 }));
 
 app.listen(8080, () => console.log(
-    `GraphQL Server running on http://localhost:8080/graphql`
+    `GraphQL Server running on http://localhost:8080/api/v1`
 ));
 
 export default driver;

@@ -1,10 +1,9 @@
 import { neo4jgraphql } from "./executor";
 import driver from "./server";
-import { makeError } from "graphql-errors";
 
 const resolvers = {
     Query: {
-        userById(object, args, ctx, resolveInfo) {
+        getUser(object, args, ctx, resolveInfo) {
             return neo4jgraphql(object, args, ctx, resolveInfo);
         },
         allUsers(object, args, ctx, resolveInfo) {
@@ -14,7 +13,7 @@ const resolvers = {
             let matcher = `id(tag) = ${args.id}`;
             return neo4jgraphql(object, args, ctx, resolveInfo, matcher);
         },
-        tagsByUserId(object, args, ctx, resolveInfo) {
+        tagsByUsername(object, args, ctx, resolveInfo) {
             return neo4jgraphql(object, args, ctx, resolveInfo);
         },
         tagsByLocation(object, args, ctx, resolveInfo) {
@@ -30,16 +29,19 @@ const resolvers = {
     Mutation: {
         createUser(object, args, ctx, resolveInfo) {
             console.log("Creating a user");
-            console.log(args.userId);
+            console.log(args.username);
 
             return neo4jgraphql(object, args, ctx, resolveInfo).then(existingUser => {
                 if(!existingUser) {
                     console.log("The user did not exist");
+
                     let params = {
-                        userId: args.userId
+                        username: args.username,
+                        name: (args.name ? args.name : args.username),
+                        picture: (args.picture ? args.picture : "")
                     };
 
-                    let query = `CREATE (user:User { userId: $userId, name: $userId }) RETURN user`;
+                    let query = `CREATE (user:User { username: $username, name: $name, picture: $picture }) RETURN user`;
 
                     return driver.session().run(query, params).then(result => {
                         return result.records[0].get('user').properties;
@@ -47,7 +49,7 @@ const resolvers = {
 
                 } else {
                     console.log("The user already exists in the system");
-                    throw new Error("A user with that userId already exists");
+                    throw new Error("A user with that username already exists");
                 }
             })
 
@@ -59,7 +61,7 @@ const resolvers = {
 
             let query = `
                 CREATE (tag:Tag {
-                    userId: $userId, 
+                    username: $username, 
                     title: $title, 
                     text: $text, 
                     lat: $lat, 
@@ -68,7 +70,7 @@ const resolvers = {
                     dtg: $dtg 
                 })
                 WITH tag
-                MATCH (user:User) WHERE user.userId = "${args.userId}"
+                MATCH (user:User) WHERE user.username = "${args.username}"
                 WITH tag, user
                 CREATE (user)-[:TAGGED]->(tag)
                 CREATE (tag)-[:TAGGED_BY]->(user)
@@ -77,11 +79,11 @@ const resolvers = {
 
             if (!args.title) throw new Error("Missing Title");
             if (!args.text) throw new Error("Missing Text");
-            if (!args.userId) throw new Error("Missing User ID");
+            if (!args.username) throw new Error("Missing Username");
 
 
-            return userExists(args.userId).then(user => {
-                if(!user) throw new Error("User " + args.userId + " does not exist");
+            return userExists(args.username).then(user => {
+                if(!user) throw new Error("User " + args.username + " does not exist");
 
                 return driver.session().run(query, args).then(result => {
                     return neo4jgraphql(object, args, ctx, resolveInfo, undefined);
@@ -125,9 +127,10 @@ const resolvers = {
     }
 };
 
-function userExists(userId) {
-    let query = `MATCH (user:User) WHERE user.userId = $userId RETURN user`;
-    return driver.session().run(query, {userId}).then(result => {
+function userExists(username) {
+    let params = {username: username};
+    let query = `MATCH (user:User) WHERE user.username = $username RETURN user`;
+    return driver.session().run(query, params).then(result => {
         console.log("User Exists?", result.records[0]);
         return result.records[0];
     });
