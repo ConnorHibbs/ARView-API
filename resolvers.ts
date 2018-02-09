@@ -2,10 +2,6 @@ import { neo4jgraphql } from "./executor";
 import driver from "./server";
 import { makeError } from "graphql-errors";
 
-// const { maskErrors } = require('graphql-errors');
-
-require("./server");
-
 const resolvers = {
     Query: {
         userById(object, args, ctx, resolveInfo) {
@@ -46,7 +42,7 @@ const resolvers = {
                     let query = `CREATE (user:User { userId: $userId, name: $userId }) RETURN user`;
 
                     return driver.session().run(query, params).then(result => {
-                       return result.records[0].get('user').properties;
+                        return result.records[0].get('user').properties;
                     });
 
                 } else {
@@ -79,8 +75,17 @@ const resolvers = {
                 RETURN tag
             `;
 
-            return driver.session().run(query, args).then(result => {
-                return neo4jgraphql(object, args, ctx, resolveInfo, undefined);
+            if (!args.title) throw new Error("Missing Title");
+            if (!args.text) throw new Error("Missing Text");
+            if (!args.userId) throw new Error("Missing User ID");
+
+
+            return userExists(args.userId).then(user => {
+                if(!user) throw new Error("User " + args.userId + " does not exist");
+
+                return driver.session().run(query, args).then(result => {
+                    return neo4jgraphql(object, args, ctx, resolveInfo, undefined);
+                });
             });
         },
         removeTag(object, args, ctx, resolveInfo) {
@@ -97,8 +102,35 @@ const resolvers = {
                 let matcher = `id(tag) = ${args.id}`;
                 return neo4jgraphql(object, args, ctx, resolveInfo, matcher);
             })
+        },
+        updateTag(object, args, ctx, resolveInfo) {
+            console.log("Updating a tag");
+            console.log(args);
+
+            let query = `
+                MATCH (tag:Tag)
+                WHERE id(tag) = $id
+                WITH tag
+                ${args.title ? "SET tag.title = $title" : ""}
+                ${args.text  ? "SET tag.text  = $text"  : ""}
+                RETURN tag
+            `;
+            console.log("Update Query:", query);
+
+            return driver.session().run(query, args).then(result => {
+                let matcher = `id(tag) = ${args.id}`;
+                return neo4jgraphql(object, args, ctx, resolveInfo, matcher);
+            });
         }
     }
 };
+
+function userExists(userId) {
+    let query = `MATCH (user:User) WHERE user.userId = $userId RETURN user`;
+    return driver.session().run(query, {userId}).then(result => {
+        console.log("User Exists?", result.records[0]);
+        return result.records[0];
+    });
+}
 
 export default resolvers;

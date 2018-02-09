@@ -30,6 +30,7 @@ type Mutation {
     createUser(userId: String, name: String) : User
     createTag(userId: String, title: String, text: String, lat: Float, lon: Float, ele: Float, dtg: String) : Tag
     removeTag(id: Int) : Tag
+    updateTag(id: Int, title: String, text: String) : Tag
 }
 `;
 
