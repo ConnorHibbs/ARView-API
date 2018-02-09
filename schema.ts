@@ -25,6 +25,10 @@ type Query {
     tagsByUserId(userId: String) : [Tag]
     tagsByLocation(lat: Float, lon: Float radius: Float): [Tag]
 }
+
+type Mutation {
+    createUser(userId: String) : User
+}
 `;
 
 export default makeExecutableSchema({
