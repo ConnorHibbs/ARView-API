@@ -2,7 +2,7 @@ import { neo4jgraphql } from "./executor";
 import driver from "./server";
 import { makeError } from "graphql-errors";
 
-const { maskErrors } = require('graphql-errors');
+// const { maskErrors } = require('graphql-errors');
 
 require("./server");
 
@@ -37,16 +37,11 @@ const resolvers = {
             console.log(args.userId);
 
             return neo4jgraphql(object, args, ctx, resolveInfo).then(existingUser => {
-
-                console.log("Existing User:", existingUser);
-
                 if(!existingUser) {
                     console.log("The user did not exist");
                     let params = {
                         userId: args.userId
-                    }
-
-                    // CREATE (u:User {userId:"Donald Duck", name:"Donald Duck"})
+                    };
 
                     let query = `CREATE (user:User { userId: $userId, name: $userId }) RETURN user`;
 
@@ -61,6 +56,47 @@ const resolvers = {
             })
 
 
+        },
+        createTag(object, args, ctx, resolveInfo) {
+            console.log("Creating a tag");
+            console.log(args);
+
+            let query = `
+                CREATE (tag:Tag {
+                    userId: $userId, 
+                    title: $title, 
+                    text: $text, 
+                    lat: $lat, 
+                    lon: $lon, 
+                    ele: $ele, 
+                    dtg: $dtg 
+                })
+                WITH tag
+                MATCH (user:User) WHERE user.userId = "${args.userId}"
+                WITH tag, user
+                CREATE (user)-[:TAGGED]->(tag)
+                CREATE (tag)-[:TAGGED_BY]->(user)
+                RETURN tag
+            `;
+
+            return driver.session().run(query, args).then(result => {
+                return neo4jgraphql(object, args, ctx, resolveInfo, undefined);
+            });
+        },
+        removeTag(object, args, ctx, resolveInfo) {
+            console.log("Removing a tag");
+            console.log(args);
+
+            let query = `
+                MATCH (tag:Tag)
+                WHERE id(tag) = ${args.id}
+                DETACH DELETE tag
+            `;
+
+            return driver.session().run(query, args).then(result => {
+                let matcher = `id(tag) = ${args.id}`;
+                return neo4jgraphql(object, args, ctx, resolveInfo, matcher);
+            })
         }
     }
 };
