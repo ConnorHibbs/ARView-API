@@ -1,15 +1,23 @@
 # ARView API
 
 ## Description
-This project is for the GraphQL API for the Social AR project for Software Architecture. It is responsible for implementing the API needed for the various mobile clients.
+This repository contains all of the code needed for the ARView API. The API is responsible for connecting exposing the data in the Neo4J database to external applications through a web protocol (HTTP). This application uses the GraphQL API framework and provides security by only accepting a handful of queries amd mutations.
+
+Note: This API is not complete with the API specification linked below. It is being incrementally developed. The partial API spec lists the most current information for the API and is updated much more often than the full API spec.
+
 
 ## Resources
 API Specification: https://goo.gl/R7zEio
+Partial API Specification: https://goo.gl/zLm7qm
+
+Learn GraphQL: http://graphql.org/learn/
+Learn Neo4J: https://neo4j.com/developer/get-started/
 
 
 # Quick Start Guide
 
 This guide is for understanding how to interact with the data through the API. If you already have a database running and can modify the following calls to suit your needs, please skip the next section. If you want to get the database and API running locally, and fill the database with the test data used in this example, then the next section is just for you.
+
 
 ##Setting Up With Sample Data
 1. Install Neo4J https://neo4j.com/
@@ -17,7 +25,7 @@ You just need the desktop version, not the server or enterprise version
 
 2. Create a new local database in Neo4J.
 	Enter anything for the database name and description.
-    
+
 3. When it is done, install the APOC plugin.
       * Select your project, your database, and click Manage
       * Click the “Plugnis” tab
@@ -97,10 +105,37 @@ There are a couple of different ways to test the API.
 * In Insomnia, specify the URL "localhost:8080/api/v1" and execute test queries exactly as they are writte
 * In Postman or Javascript, make a POST request to "localhost:8080/api/v1" with a JSON body. The body should have a single element "query" as the root, and the text being the query exactly as they are written
 
-##My First Query
+## GraphQL Crash Course
+GraphlQL is an API framework that supports getting data back in the same way a graph can be traversed. It allows getting back _sub_ information from objects, and only the information that was requested. For example, we can look at the allUsers query.
+
+```graphql
+query {
+	allUsers {
+    	name
+        username
+        picture
+    }
+}
+```
+In this example, we are asking the database for all registered users, and we would like back their name, their username, and the URL to their profile picture. If we didn't want the picture, we can just leave that part of the query out. GraphQL only returns the information that is requested.
+
+This becomes more significant when querying larger data sets. For an example, the Tag type in the database contains much more information than the User.
+
+```graphql
+query {
+	tagsByLocation(lat: 40.3456, lon: -87.4519, radius: 0.001) {
+    	_id
+        lat
+        lon
+    }
+}
+```
+In this example, we can see that we are getting back the ID, latitude, and longitude of the tag. The ID has an underscore because it is a private variable that is not assigned by the user. That is not GraphQL notation, that is notation being used in this project for retrieving private variables.
+
+## My First Query
 To verify that the database and API are running as expected, you can execute the following query.
 
-```
+```graphql
 query {
 	allUsers {
     	username
@@ -111,7 +146,7 @@ query {
 This should return all of the users (and their names / usernames) as a JSON array
 
 To query with specific variables, you can specify those in parentheses like below.
-```
+```graphql
 query {
 	getUser(username: "Alex") {
     	name
@@ -123,7 +158,7 @@ This should return a single user, Alex, with the username and name both being "A
 
 
 
-##My First Mutation
+## My First Mutation
 Mutations work very similarly to queries in GraphQL.
 
 
@@ -183,7 +218,7 @@ console.log(lat, lon, radius);
 
 let query = `
 query {
-	getTagsByLocation(lat: ${lat}, lon: ${lon}, radius: ${radius}) {
+	tagsByLocation(lat: ${lat}, lon: ${lon}, radius: ${radius}) {
     	_id
         lat
         lon
