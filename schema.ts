@@ -5,6 +5,7 @@ const typeDefs = `
 type User {
     username: String!
     name: String!
+    picture: String
 }
 
 type Tag {
