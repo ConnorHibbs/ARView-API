@@ -16,10 +16,10 @@ Learn Neo4J: https://neo4j.com/developer/get-started/
 
 # Quick Start Guide
 
-This guide is for understanding how to interact with the data through the API. If you already have a database running and can modify the following calls to suit your needs, please skip the next section. If you want to get the database and API running locally, and fill the database with the test data used in this example, then the next section is just for you.
+This guide is for understanding how to interact with the data through the API. If you already have a database running and can modify the following calls to suit your needs, please skip the next section (GraphQL Crash Course). If you want to get the database and API running locally, and fill the database with the test data used in this example, then the next section is just for you.
 
 
-##Setting Up With Sample Data
+## Setting Up With Sample Data
 1. Install Neo4J https://neo4j.com/
 You just need the desktop version, not the server or enterprise version
 
@@ -33,7 +33,7 @@ You just need the desktop version, not the server or enterprise version
       ( It might take a little bit to install, and might require a restart.
 
 4. When it is finished installing, go ahead and click “Start”. It will take a couple of seconds to start. 
-After that, go ahead of an click “Manage” > “Open Browser”. 
+After that, go ahead of an click “Manage” > “Open Browser”.
 
 5. For the first time running a database, it will ask you to log in. The URL and username should be filled in with “https://127.0.0.1:8080” and “neo4j”. You should keep the defaults. The default password is “neo4j”. When you enter it, the program will prompt you for a new password. The API is expecting “password” and the password, so you should use this as well. After you enter the password, a panel will pop up showing resources for learning how to use Neo4J. At this point, you are in the Browser.
 
@@ -53,7 +53,7 @@ Data can be entered manually through the API, but sometimes it would be easier t
 Make sure the server is running, and then open the browser.
 Execute the command
 ```
-LOAD CSV WITH HEADERS FROM "https://pastebin.com/raw/bqt67hPi" AS line 
+LOAD CSV WITH HEADERS FROM "https://pastebin.com/raw/bqt67hPi" AS line
 CREATE (u:User)
 SET u += line
 RETURN u
