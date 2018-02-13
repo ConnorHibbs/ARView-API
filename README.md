@@ -7,11 +7,11 @@ Note: This API is not complete with the API specification linked below. It is be
 
 
 ## Resources
-API Specification: https://goo.gl/R7zEio
-Partial API Specification: https://goo.gl/zLm7qm
+API Specification: https://goo.gl/R7zEio  
+Partial API Specification: https://goo.gl/zLm7qm  
 
-Learn GraphQL: http://graphql.org/learn/
-Learn Neo4J: https://neo4j.com/developer/get-started/
+Learn GraphQL: http://graphql.org/learn/  
+Learn Neo4J: https://neo4j.com/developer/get-started/  
 
 
 # Quick Start Guide
